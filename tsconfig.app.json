@@ -30,7 +30,6 @@
     "useDefineForClassFields": true
   },
   "include": [
-    "src",
-    "presell-lovable/src"
+    "src"
   ]
 }
