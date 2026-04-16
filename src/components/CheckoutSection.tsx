@@ -229,7 +229,7 @@ const CheckoutSection = ({ trackingCode, userName, maskedCpf, onBack }: Checkout
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Status da Encomenda</span>
-                  <span className="font-semibold" style={{ color: "hsl(var(--destructive))" }}>Retida na Alfândega</span>
+                  <span className="font-semibold" style={{ color: "hsl(var(--destructive))" }}>Retida</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Prazo para Regularização</span>
