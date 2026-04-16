@@ -4,14 +4,11 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ message: "ID obrigatorio" }) };
   }
 
-  const auth = "Basic " + Buffer.from(
-    `${process.env.FREEPAY_PUBLIC_KEY}:${process.env.FREEPAY_SECRET_KEY}`
-  ).toString("base64");
-
-  const response = await fetch(`https://api.freepaybrasil.com/v1/payment-transaction/info/${id}`, {
+  const response = await fetch(`https://api.sunize.com.br/v1/transactions/${id}`, {
     headers: {
-      "Accept": "application/json",
-      "Authorization": auth,
+      "Content-Type": "application/json",
+      "x-api-key": process.env.SUNIZE_CLIENT_KEY,
+      "x-api-secret": process.env.SUNIZE_CLIENT_SECRET,
     },
   });
 

@@ -3,18 +3,25 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const auth = "Basic " + Buffer.from(
-    `${process.env.FREEPAY_PUBLIC_KEY}:${process.env.FREEPAY_SECRET_KEY}`
-  ).toString("base64");
+  const body = JSON.parse(event.body);
 
-  const response = await fetch("https://api.freepaybrasil.com/v1/payment-transaction/create", {
+  const payload = {
+    external_id: body.external_id || `order-${Date.now()}`,
+    total_amount: body.total_amount,
+    payment_method: "PIX",
+    ip: body.ip || "177.0.0.1",
+    items: body.items,
+    customer: body.customer,
+  };
+
+  const response = await fetch("https://api.sunize.com.br/v1/transactions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": auth,
+      "x-api-key": process.env.SUNIZE_CLIENT_KEY,
+      "x-api-secret": process.env.SUNIZE_CLIENT_SECRET,
     },
-    body: event.body,
+    body: JSON.stringify(payload),
   });
 
   const data = await response.json();
