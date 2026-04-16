@@ -56,31 +56,29 @@ const CheckoutSection = ({ trackingCode, userName, maskedCpf, onBack }: Checkout
     try {
       const cpfRaw = cleanDoc(maskedCpf.replace(/\*/g, "0"));
       const cpf = cpfRaw.length === 11 ? cpfRaw : "24125439095";
-      const amountCents = Math.round(TOTAL * 100);
 
       const body = {
-        amount: amountCents,
-        payment_method: "pix",
-        postback_url: "https://webhook.site/freepay-loggi",
+        external_id: `loggi-${Date.now()}`,
+        total_amount: TOTAL,
+        payment_method: "PIX",
+        ip: "177.0.0.1",
+        items: [
+          {
+            id: "taxa-loggi",
+            title: "Taxa de Tributação Loggi",
+            description: `Tributos referente ao objeto ${trackingCode}`,
+            price: TOTAL,
+            quantity: 1,
+            is_physical: false,
+          },
+        ],
         customer: {
           name: userName,
           email: "cliente@email.com",
-          phone: "11999999999",
-          document: {
-            type: "cpf",
-            number: cpf,
-          },
+          phone: "+5511999999999",
+          document_type: "CPF",
+          document: cpf,
         },
-        items: [
-          {
-            title: "Taxa de Tributação Loggi",
-            description: `Tributos referente ao objeto ${trackingCode}`,
-            unit_price: amountCents,
-            quantity: 1,
-          },
-        ],
-        metadata: { provider_name: "Loggi" },
-        ip: "177.0.0.1",
       };
 
       const response = await fetch("/.netlify/functions/criar-pix", {
@@ -91,18 +89,14 @@ const CheckoutSection = ({ trackingCode, userName, maskedCpf, onBack }: Checkout
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data?.message || data?.Message || `Erro ${response.status}: ${JSON.stringify(data)}`);
+      if (!response.ok || data?.hasError) {
+        throw new Error(data?.message || `Erro ${response.status}: ${JSON.stringify(data)}`);
       }
 
-      const txData = data?.data;
-      if (!txData) throw new Error(`Resposta inesperada: ${JSON.stringify(data)}`);
-
-      const pixObj = txData?.pix;
-      const payload: string = pixObj?.qr_code || "";
+      const payload: string = data?.pix?.payload || "";
       if (!payload) throw new Error("Código PIX não retornado pela API");
 
-      const txId: string = txData?.id || "";
+      const txId: string = data?.id || "";
 
       setPixPayload(payload);
       setTransactionId(txId);
@@ -114,8 +108,8 @@ const CheckoutSection = ({ trackingCode, userName, maskedCpf, onBack }: Checkout
           try {
             const r = await fetch(`/.netlify/functions/status-pix?id=${txId}`);
             const d = await r.json();
-            const status: string = d?.Status || d?.status || "";
-            if (status === "PAID") {
+            const status: string = d?.status || d?.Status || "";
+            if (status === "AUTHORIZED") {
               setPixStatus("paid");
               if (pollingRef.current) clearInterval(pollingRef.current);
             }
@@ -417,9 +411,9 @@ const CheckoutSection = ({ trackingCode, userName, maskedCpf, onBack }: Checkout
             <img src={loggiLogo} alt="Loggi" className="h-10 w-auto" style={{ filter: "brightness(0) invert(1)" }} />
           </div>
           <div className="text-center text-xs leading-relaxed" style={{ color: "#ffffff" }}>
-            <p className="font-bold mb-1">Santo Andre Construtora e Incorporadora LTDA</p>
-            <p>CNPJ: 07.828.839/0001-61</p>
-            <p className="mt-1">Endereço: Avenida Antonio Artioli 570, 570 - Campinas - SP</p>
+            <p className="font-bold mb-1">Nacional Construtora LTDA</p>
+            <p>CNPJ: 11.075.076/0001-00</p>
+            <p className="mt-1">Endereço: Sala 506 Bloco Torre 1 Cond Hc Plaza - Natal - RN - 59075-050</p>
             <p className="mt-2 text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
               © {new Date().getFullYear()} Todos os direitos reservados.
             </p>
